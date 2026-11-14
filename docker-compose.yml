@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-quest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quest}
+      POSTGRES_DB: ${POSTGRES_DB:-quest}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quest} -d ${POSTGRES_DB:-quest}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/api/src --reload-dir /app/shared/src
+    environment:
+        DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-mastery}:${POSTGRES_PASSWORD:-mastery}@db:5432/${POSTGRES_DB:-mastery}
+        REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./api:/app/api
+      - ./shared:/app/shared
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
