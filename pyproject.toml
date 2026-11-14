@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["shared", "api"]
+members = ["shared", "api", "worker"]
 
 [dependency-groups]
 dev = [
