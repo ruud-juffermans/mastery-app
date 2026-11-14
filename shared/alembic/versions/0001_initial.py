@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('ai_run',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('agent', sa.String(length=32), nullable=False),
-    sa.Column('provider', sa.String(length=32), nullable=False),
+    sa.Column('provider', sa.String(length=32), nullable=True),
     sa.Column('model', sa.String(length=128), nullable=True),
     sa.Column('params', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
     sa.Column('prompt', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),

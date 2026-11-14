@@ -17,7 +17,7 @@ class AIRun(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     agent: Mapped[str] = mapped_column(String(32))
-    provider: Mapped[str] = mapped_column(String(32))
+    provider: Mapped[str | None] = mapped_column(String(32))
     model: Mapped[str | None] = mapped_column(String(128))
     params: Mapped[dict | None] = mapped_column(JSONType)
     prompt: Mapped[dict | None] = mapped_column(JSONType)

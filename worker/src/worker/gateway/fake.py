@@ -7,6 +7,8 @@ from worker.gateway.base import InvalidOutputError, ProviderResult
 DEFAULT_FIXTURES = {"ping": {"message": "pong"}}
 
 class FakeProvider:
+    name = "fake"
+    
     def __init__(self, fixtures: dict[str, dict] | None = None):
         self.fixtures = DEFAULT_FIXTURES if fixtures is None else fixtures
         self.calls: list[dict] = []

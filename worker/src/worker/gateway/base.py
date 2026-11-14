@@ -13,6 +13,8 @@ class ProviderResult:
     tokens_out: int
 
 class AIProvider(Protocol):
+    name: str
+    
     async def run(self, 
         agent: str, 
         system: str, 
