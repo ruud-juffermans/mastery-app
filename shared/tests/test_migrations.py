@@ -15,4 +15,4 @@ def test_single_head_revision():
 
 
 def test_models_match_migration_tables():
-    assert set(Base.metadata.tables) == {"ai_run"}
+    assert set(Base.metadata.tables) == {"ai_run", 'llm_calls'}

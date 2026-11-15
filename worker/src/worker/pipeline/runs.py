@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.storage.models import AIRun
 from worker.gateway.base import AIProvider, InvalidOutputError
+from worker.gateway.metering import metered_run
 from worker.pipeline.agents import AGENTS
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,15 @@ async def execute_ai_run(session: AsyncSession, run_id: int, provider: AIProvide
         run.prompt = {"system": prompt.system, "user": prompt.user}
 
         start_time = time.perf_counter()
-        result = await provider.run(run.agent, prompt.system, prompt.user, agent.schema)
+        result = await metered_run(
+            provider=provider,
+            agent=run.agent,
+            system=prompt.system,
+            user=prompt.user,
+            schema=agent.schema,
+            job_id=run.id,
+            attempt=1
+        )
         run.duration_ms = int((time.perf_counter() - start_time) * 1000)
 
         run.output = result.parsed.model_dump()

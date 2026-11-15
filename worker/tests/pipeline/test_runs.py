@@ -1,5 +1,7 @@
+from sqlalchemy import select
+
 from shared.storage import db
-from shared.storage.models import AIRun
+from shared.storage.models import AIRun, LLMCall
 from worker.gateway.fake import FakeProvider
 from worker.pipeline.runs import execute_ai_run, fail_run, release_run
 
@@ -35,6 +37,12 @@ async def test_successful_run_is_logged_in_full(test_db):
     assert run.raw == '{"message": "pong"}'
     assert run.duration_ms is not None
     assert run.error is None
+
+    async with db.SessionLocal() as session:
+        calls = list(await session.scalars(select(LLMCall).where(LLMCall.job_id == run.id)))
+    assert len(calls) == 1
+    assert calls[0].outcome == "ok"
+    assert calls[0].attempt == 1
 
 
 async def test_failing_provider_yields_error(test_db):
