@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import Integer, String, JSON, Text,DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB

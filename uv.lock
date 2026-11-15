@@ -77,6 +77,7 @@ source = { editable = "api" }
 dependencies = [
     { name = "arq" },
     { name = "fastapi" },
+    { name = "redis" },
     { name = "shared" },
     { name = "uvicorn" },
 ]
@@ -85,6 +86,7 @@ dependencies = [
 requires-dist = [
     { name = "arq", specifier = ">=0.28.0" },
     { name = "fastapi", specifier = ">=0.162.7" },
+    { name = "redis", specifier = ">=5.3.1" },
     { name = "shared", editable = "shared" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
@@ -880,12 +882,14 @@ name = "worker"
 version = "0.1.0"
 source = { editable = "worker" }
 dependencies = [
+    { name = "arq" },
     { name = "pydantic" },
     { name = "shared" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "arq", specifier = ">=0.28.0" },
     { name = "pydantic", specifier = ">=2.14.3" },
     { name = "shared", editable = "shared" },
 ]

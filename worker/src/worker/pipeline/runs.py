@@ -1,6 +1,7 @@
 import logging
 import time
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from shared.storage.models import AIRun
@@ -43,4 +44,14 @@ async def execute_ai_run(session: AsyncSession, run_id: int, provider: AIProvide
 
     await session.commit()
     
+async def fail_run(session: AsyncSession, run_id: int, message: str) -> None:
+    """Mark an in-flight job as failed from outside the runner (the worker's timeout path)."""
+    await session.execute(update(AIRun).where(AIRun.id == run_id, AIRun.status == "running").values(status="error", error=message))
+    await session.commit()
 
+
+
+async def release_run(session: AsyncSession, run_id: int) -> None:
+    """Hand a `running` job back to the queue (the worker is shutting down; the queue will redeliver it)."""
+    await session.execute(update(AIRun).where(AIRun.id == run_id, AIRun.status == "running").values(status="queued"))
+    await session.commit()

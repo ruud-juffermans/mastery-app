@@ -1,7 +1,7 @@
 from shared.storage import db
 from shared.storage.models import AIRun
 from worker.gateway.fake import FakeProvider
-from worker.pipeline.runs import execute_ai_run
+from worker.pipeline.runs import execute_ai_run, fail_run, release_run
 
 class FailingProvider:
     name = "failing"
@@ -59,3 +59,48 @@ async def test_unknown_agent_yields_error(test_db):
 async def test_missing_row_does_nothing(test_db):
     async with db.SessionLocal() as session:
         await execute_ai_run(session, 999, FakeProvider())
+
+
+async def create_run_with_status(status: str) -> int:
+    async with db.SessionLocal() as session:
+        run = AIRun(agent="ping", params={}, status=status)
+        session.add(run)
+        await session.commit()
+        return run.id
+
+
+async def get_run(run_id: int) -> AIRun:
+    async with db.SessionLocal() as session:
+        return await session.get(AIRun, run_id)
+
+
+async def test_fail_run_marks_a_running_job_as_error(test_db):
+    run_id = await create_run_with_status("running")
+
+    async with db.SessionLocal() as session:
+        await fail_run(session, run_id, "timed out")
+
+    run = await get_run(run_id)
+    assert run.status == "error"
+    assert run.error == "timed out"
+
+
+async def test_release_run_hands_a_running_job_back(test_db):
+    run_id = await create_run_with_status("running")
+
+    async with db.SessionLocal() as session:
+        await release_run(session, run_id)
+
+    run = await get_run(run_id)
+    assert run.status == "queued"
+
+async def test_finished_job_is_left_alone(test_db):
+    run_id = await create_run_with_status("ok")
+
+    async with db.SessionLocal() as session:
+        await fail_run(session, run_id, "timed out")
+        await release_run(session, run_id)
+
+    run = await get_run(run_id)
+    assert run.status == "ok"
+    assert run.error is None
